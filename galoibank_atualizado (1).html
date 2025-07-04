@@ -1,0 +1,242 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Galoibank</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    body {
+      background: #f2f3f7;
+    }
+    .login-container, .app {
+      max-width: 420px;
+      margin: 40px auto;
+      background: white;
+      padding: 30px 25px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #8b10ae;
+      margin-bottom: 20px;
+    }
+    h2 {
+      color: #555;
+      margin-top: 30px;
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      font-size: 16px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      outline: none;
+      transition: 0.2s;
+    }
+    input:focus {
+      border-color: #8b10ae;
+      box-shadow: 0 0 5px rgba(139, 16, 174, 0.2);
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      background: #8b10ae;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #6d0b8c;
+    }
+    .saldo {
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+      margin-top: 10px;
+      color: #2e7d32;
+    }
+    .formulario {
+      margin-bottom: 15px;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 10px;
+    }
+    ul li {
+      background: #f1f1f1;
+      padding: 10px;
+      margin-bottom: 6px;
+      border-radius: 8px;
+      font-size: 15px;
+      color: #333;
+    }
+    canvas {
+      background: #fff;
+      border-radius: 10px;
+      padding: 10px;
+      margin-top: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container" id="loginScreen">
+    <h1>Galoibank</h1>
+    <input type="text" id="username" placeholder="Usuário" />
+    <input type="password" id="password" placeholder="Senha" />
+    <button onclick="login()">Entrar</button>
+  </div>
+
+  <div class="app hidden" id="mainApp">
+    <h1>Galoibank</h1>
+    <div class="saldo" id="saldoDisplay">R$ 0,00</div>
+    <div class="formulario">
+      <input type="number" id="valorEntrada" placeholder="Depositar (R$)" />
+      <button onclick="depositar()">Depositar</button>
+    </div>
+    <div class="formulario">
+      <input type="number" id="valorSaque" placeholder="Sacar (R$)" />
+      <button onclick="sacar()">Sacar</button>
+    </div>
+    <div class="formulario">
+      <input type="text" id="pixChave" placeholder="Chave Pix" />
+      <input type="number" id="valorPix" placeholder="Valor Pix (R$)" />
+      <button onclick="fazerPix()">Pix</button>
+    </div>
+    <div class="formulario">
+      <button onclick="investir()">Investir Galoins</button>
+    </div>
+    <h2>Histórico</h2>
+    <ul id="historico"></ul>
+    <h2>Gráfico Financeiro</h2>
+    <canvas id="grafico"></canvas>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    let saldo = 0;
+    let usuarioAtual = null;
+    const historico = document.getElementById("historico");
+    const saldoDisplay = document.getElementById("saldoDisplay");
+
+    function atualizarSaldo() {
+      saldoDisplay.textContent = saldo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      localStorage.setItem("saldo_" + usuarioAtual, saldo);
+    }
+
+    function adicionarHistorico(texto) {
+      const li = document.createElement("li");
+      li.textContent = texto;
+      historico.prepend(li);
+    }
+
+    function salvarHistorico() {
+      const items = [];
+      historico.querySelectorAll("li").forEach(li => items.push(li.textContent));
+      localStorage.setItem("historico_" + usuarioAtual, JSON.stringify(items));
+    }
+
+    function carregarDadosUsuario() {
+      saldo = parseFloat(localStorage.getItem("saldo_" + usuarioAtual)) || 0;
+      historico.innerHTML = "";
+      const historicoSalvo = JSON.parse(localStorage.getItem("historico_" + usuarioAtual)) || [];
+      historicoSalvo.forEach(item => adicionarHistorico(item));
+      atualizarSaldo();
+    }
+
+    function login() {
+      const user = document.getElementById("username").value;
+      const pass = document.getElementById("password").value;
+      if (user && pass) {
+        usuarioAtual = user;
+        document.getElementById("loginScreen").classList.add("hidden");
+        document.getElementById("mainApp").classList.remove("hidden");
+        carregarDadosUsuario();
+        gerarGrafico();
+      } else {
+        alert("Preencha usuário e senha!");
+      }
+    }
+
+    function depositar() {
+      const valor = parseFloat(document.getElementById("valorEntrada").value);
+      if (valor > 0) {
+        saldo += valor;
+        atualizarSaldo();
+        adicionarHistorico(`Depósito de R$ ${valor.toFixed(2)}`);
+        salvarHistorico();
+      }
+    }
+
+    function sacar() {
+      const valor = parseFloat(document.getElementById("valorSaque").value);
+      if (valor > 0 && valor <= saldo) {
+        saldo -= valor;
+        atualizarSaldo();
+        adicionarHistorico(`Saque de R$ ${valor.toFixed(2)}`);
+        salvarHistorico();
+      }
+    }
+
+    function fazerPix() {
+      const chave = document.getElementById("pixChave").value;
+      const valor = parseFloat(document.getElementById("valorPix").value);
+      if (chave && valor > 0 && valor <= saldo) {
+        saldo -= valor;
+        atualizarSaldo();
+        adicionarHistorico(`Pix de R$ ${valor.toFixed(2)} para ${chave}`);
+        salvarHistorico();
+      }
+    }
+
+    function investir() {
+      const valor = 100;
+      if (saldo >= valor) {
+        saldo -= valor;
+        atualizarSaldo();
+        adicionarHistorico(`Investimento de R$ ${valor.toFixed(2)} em Galoins`);
+        salvarHistorico();
+      }
+    }
+
+    function gerarGrafico() {
+      const ctx = document.getElementById("grafico").getContext("2d");
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul'],
+          datasets: [{
+            label: 'Saldo em Galoins',
+            data: [200, 400, 600, 800, 1000, 1200, saldo],
+            borderColor: '#8b10ae',
+            fill: false
+          }]
+        },
+        options: {
+          responsive: true
+        }
+      });
+    }
+  </script>
+</body>
+</html>
