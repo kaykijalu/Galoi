@@ -1,0 +1,67 @@
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f1f1f1;
+}
+
+.hidden {
+  display: none;
+}
+
+.login-container, .app {
+  max-width: 480px;
+  margin: auto;
+  padding: 20px;
+  background: white;
+  margin-top: 30px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+h1, h2 {
+  color: #8b10ae;
+  text-align: center;
+}
+
+input, button {
+  padding: 10px;
+  margin: 5px 0;
+  width: 100%;
+  font-size: 16px;
+}
+
+button {
+  background: #8b10ae;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+button:hover {
+  background: #6d0b8c;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.saldo {
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+ul li {
+  background: #eee;
+  margin-bottom: 5px;
+  padding: 10px;
+  border-radius: 5px;
+}
